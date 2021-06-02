@@ -1,0 +1,58 @@
+[
+    {
+        "model": "core.permission",
+        "pk": 1,
+        "fields": {
+            "name": "view_users"
+        }
+    },
+    {
+        "model": "core.permission",
+        "pk": 2,
+        "fields": {
+            "name": "edit_users"
+        }
+    },
+    {
+        "model": "core.permission",
+        "pk": 3,
+        "fields": {
+            "name": "view_roles"
+        }
+    },
+    {
+        "model": "core.permission",
+        "pk": 4,
+        "fields": {
+            "name": "edit_roles"
+        }
+    },
+    {
+        "model": "core.permission",
+        "pk": 5,
+        "fields": {
+            "name": "view_products"
+        }
+    },
+    {
+        "model": "core.permission",
+        "pk": 6,
+        "fields": {
+            "name": "edit_products"
+        }
+    },
+    {
+        "model": "core.permission",
+        "pk": 7,
+        "fields": {
+            "name": "view_orders"
+        }
+    },
+    {
+        "model": "core.permission",
+        "pk": 8,
+        "fields": {
+            "name": "edit_orders"
+        }
+    }
+]

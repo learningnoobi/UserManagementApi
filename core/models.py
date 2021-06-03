@@ -70,5 +70,6 @@ class User(AbstractUser):
     objects = CustomUserManager()
 
     USERNAME_FIELD = 'email'
+    #requred for creating user
     REQUIRED_FIELDS = ['first_name','last_name']
 

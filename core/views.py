@@ -156,6 +156,5 @@ class ProfilePasswordAPIView(APIView):
             raise exceptions.AuthenticationFailed("Password do not match !")
         serializer = UserSerializer(user, data=request.data , partial=True)
         serializer.is_valid(raise_exception=True)
-        # serializer.set_password(request.data["password"])
         serializer.save()
         return Response(serializer.data)

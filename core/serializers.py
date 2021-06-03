@@ -6,6 +6,13 @@ class PermissionSerializer(serializers.ModelSerializer):
         model = Permission
         fields = '__all__'
 
+class CurrentUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'first_name', 'last_name', 'email', 'password', 'role']
+        extra_kwargs = {'password': {'write_only': True}}
+        depth = 2
+
 
 class PermissionRelatedField(serializers.StringRelatedField):
     def to_representation(self, value):
@@ -46,9 +53,3 @@ class UserSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
-    def update(self,instance,validated_data):
-        password = validated_data.pop("password",None)
-        if password is not None:
-            instance.set_password(password)
-        instance.save()
-        return instance

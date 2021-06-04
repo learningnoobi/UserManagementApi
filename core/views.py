@@ -9,6 +9,7 @@ from .models import User, Permission, Role
 from .authentication import generate_access_token, JWTAuthentication
 from rest_framework.generics import ListAPIView
 from mainproject.pagination import CustomPagination
+from.permissions import ViewPermissions
 
 @api_view(['GET'])
 def users(request):
@@ -83,14 +84,14 @@ class PermissionApiView(ListAPIView):
 
 class RoleViewSet(viewsets.ModelViewSet):
     authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated ]
+    permission_classes = [IsAuthenticated & ViewPermissions]
     permission_object = 'roles'
     serializer_class = RoleSerializer
     queryset = Role.objects.all()
 
 class UserGenericAPIView(viewsets.ModelViewSet):
     authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated ]
+    permission_classes = [IsAuthenticated & ViewPermissions]
     pagination_class = CustomPagination
     permission_object = 'roles'
     serializer_class = UserSerializer

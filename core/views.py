@@ -22,12 +22,15 @@ def users(request):
 @api_view(['POST'])
 def register(request):
     data = request.data
-    if data["password"] != data["password_confirm"]:
+
+    if data['password'] != data['password_confirm']:
         raise exceptions.APIException('Passwords do not match!')
+
     serializer = UserSerializer(data=data)
     serializer.is_valid(raise_exception=True)
     serializer.save()
     return Response(serializer.data)
+
 
 @api_view(['POST'])
 def login(request):

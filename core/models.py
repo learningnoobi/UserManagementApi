@@ -51,7 +51,7 @@ class Permission(models.Model):
     
 
 class Role(models.Model):
-    name = models.CharField(max_length=200)
+    name = models.CharField(max_length=200,unique=True)
     permissions = models.ManyToManyField(Permission)
 
     def __str__(self):
@@ -64,7 +64,7 @@ class User(AbstractUser):
     last_name = models.CharField(max_length=200)
     email = models.CharField(max_length=200, unique=True)
     password = models.CharField(max_length=200)
-    role = models.ForeignKey(Role, on_delete=models.SET_NULL, null=True, default=None)
+    role = models.ForeignKey(Role,on_delete=models.SET_NULL, null=True)
     username = None
 
     objects = CustomUserManager()

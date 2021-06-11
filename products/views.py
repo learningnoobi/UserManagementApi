@@ -5,7 +5,7 @@ from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView 
-
+from django.db.models import Q
 from mainproject.pagination import CustomPagination
 from products.models import Product
 from products.serializers import ProductSerializer
@@ -19,8 +19,19 @@ class ProductGenericAPIView(viewsets.ModelViewSet):
     pagination_class = CustomPagination
     permission_object = 'roles'
     serializer_class = ProductSerializer
-    queryset = Product.objects.all()
+    # queryset = Product.objects.all()
 
+    def get_queryset(self,*args,**kwargs):
+        queryset = Product.objects.all()
+        query = self.request.query_params.dict()
+        keyword = query.get("keyword",None)
+        if keyword:
+            queryset =  queryset.filter(
+                Q(title__icontains=keyword) |
+                 Q(description__icontains=keyword )|
+                  Q(price__icontains=keyword )
+                )
+        return queryset
 
 
 class FileUploadView(APIView):

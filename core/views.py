@@ -10,7 +10,7 @@ from .authentication import generate_access_token, JWTAuthentication
 from rest_framework.generics import ListAPIView
 from mainproject.pagination import CustomPagination
 from.permissions import ViewPermissions
-
+from django.db.models import Q
 @api_view(['GET'])
 def users(request):
     user = User.objects.all()
@@ -22,13 +22,22 @@ def users(request):
 @api_view(['POST'])
 def register(request):
     data = request.data
-
+    first_name = data['first_name']
+    last_name = data['last_name']
+    email = data['email']
+    role= "Editor"
     if data['password'] != data['password_confirm']:
         raise exceptions.APIException('Passwords do not match!')
-
-    serializer = UserSerializer(data=data)
-    serializer.is_valid(raise_exception=True)
-    serializer.save()
+    if len(data['password']) < 6:
+        raise exceptions.APIException('Passwords must be larger than 6 letters!')
+    new_user = User(
+        first_name=first_name,last_name=last_name,
+        email=email,password= data['password'] ,
+        role=Role.objects.get(name=role)
+        )
+    new_user.set_password(data['password'])
+    new_user.save()
+    serializer = UserSerializer(new_user)
     return Response(serializer.data)
 
 
@@ -97,9 +106,22 @@ class UserGenericAPIView(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated & ViewPermissions]
     pagination_class = CustomPagination
     permission_object = 'roles'
-    serializer_class = UserSerializer
+    serializer_class = CurrentUserSerializer
     queryset = User.objects.all()
     
+    def get_queryset(self,*args,**kwargs):
+        queryset = User.objects.all()
+        query = self.request.query_params.dict()
+        keyword = query.get("keyword",None)
+        if keyword:
+            queryset =  queryset.filter(
+                Q(first_name__icontains=keyword) |
+                 Q(last_name__icontains=keyword) |
+                 Q(email__icontains=keyword )
+                 
+                )
+        return queryset
+
     @action(detail=True, methods=['get'])
     def roles(self,request,pk=None):
         email = self.get_object()
@@ -124,6 +146,22 @@ class UserGenericAPIView(viewsets.ModelViewSet):
         new_user.save()
         serializer = UserSerializer(new_user)
         return Response(serializer.data)
+    
+    def update(self,request,*args,**kwargs):
+        data = request.data
+        email = data['email']
+        password = "182blink"
+        role = data['role']
+        pk = self.get_object()
+        user = User.objects.get(email = pk)
+        user.first_name = data['first_name']
+        user.last_name = data['last_name']
+        user.email = email
+        user.role = Role.objects.get(id=role)
+        user.set_password(password)
+        user.save()
+        serializer = UserSerializer(user)
+        return Response(serializer.data)
 
 
 class ProfileUpdateView(APIView):
@@ -144,8 +182,14 @@ class ProfilePasswordAPIView(APIView):
     def put(self, request, pk=None):
         user = request.user
 
+        if len(request.data['password']) < 6:
+            raise exceptions.ValidationError({'len':'Passwords must be larger than 6 letters !'})
+
+        if not user.check_password(request.data['old_password']):
+            raise exceptions.AuthenticationFailed({'old':'Incorrect Password!'})
+        
         if request.data['password'] != request.data['password_confirm']:
-            raise exceptions.ValidationError('Passwords do not match')
+            raise exceptions.ValidationError({'new':'Passwords do not match  !'})
 
         user.set_password(request.data['password'])
         user.save()

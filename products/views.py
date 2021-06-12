@@ -11,7 +11,9 @@ from products.models import Product
 from products.serializers import ProductSerializer
 from core.authentication import JWTAuthentication
 
-
+from core.models import User
+from orders.models import Order
+import cloudinary.uploader
 
 class ProductGenericAPIView(viewsets.ModelViewSet):
     authentication_classes = [JWTAuthentication]
@@ -24,14 +26,26 @@ class ProductGenericAPIView(viewsets.ModelViewSet):
     def get_queryset(self,*args,**kwargs):
         queryset = Product.objects.all()
         query = self.request.query_params.dict()
-        keyword = query.get("keyword",None)
+        keyword = query.get("keyword",'')
         if keyword:
             queryset =  queryset.filter(
                 Q(title__icontains=keyword) |
                  Q(description__icontains=keyword )|
                   Q(price__icontains=keyword )
                 )
-        return queryset
+        return queryset.order_by("-id")
+
+class TotalCount(APIView):
+    def get(self,request,*args, **kwargs):
+        total_products = Product.objects.all().count()
+        total_users = User.objects.all().count()
+        total_orders = Order.objects.all().count()
+        return Response({
+            'total_products':total_products,
+            'total_users':total_users,
+            'total_orders':total_orders,
+        })
+
 
 
 class FileUploadView(APIView):
@@ -40,10 +54,13 @@ class FileUploadView(APIView):
     parser_classes = (MultiPartParser,)
 
     def post(self, request):
-        file = request.FILES['image']
-        file_name = default_storage.save(file.name, file)
-        url = default_storage.url(file_name)
+        file= request.data.get('image')
+        upload_data = cloudinary.uploader.upload(file)
+        # url = default_storage.url(file_name)
 
         return Response({
-            'url': 'http://127.0.0.1:8000/pro' + url
+            'status': 'success',
+            'data': upload_data,
         })
+
+
